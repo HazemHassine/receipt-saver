@@ -25,10 +25,9 @@ Snap a photo. Extract every detail. Stay on budget.
 
 ## 📸 Screenshots
 
-<!-- Replace the placeholder paths below with your actual screenshot images -->
 
 <div align="center">
-TO DO 
+
 | Landing Page | Dashboard |
 |:---:|:---:|
 | ![Landing Page](docs/screenshots/landing.png) | ![Dashboard](docs/screenshots/dashboard.png) |
@@ -43,7 +42,7 @@ TO DO
 
 | WhatsApp Integration | Settings |
 |:---:|:---:|
-| ![WhatsApp](docs/screenshots/whatsapp.png) | ![Settings](docs/screenshots/settings.png) |
+| ![WhatsApp](docs/screenshots/whatsapp.jpeg) | ![Settings](docs/screenshots/settings.png) |
 
 </div>
 
