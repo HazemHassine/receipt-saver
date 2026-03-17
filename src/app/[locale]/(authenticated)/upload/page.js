@@ -22,6 +22,7 @@ export default function UploadPage() {
   const inputRef = useRef(null);
   const { budgetingEnabled, budgetingAlerts } = useBudget();
   const t = useTranslations("upload");
+  const tc = useTranslations("common");
 
   // Queue of { file, preview } objects
   const [queue, setQueue] = useState([]);
@@ -280,7 +281,7 @@ export default function UploadPage() {
                 {status === "processing" ? (
                   <><Loader2 className="mr-2 h-4 w-4 animate-spin" />{t("processing")}</>
                 ) : status === "done" ? (
-                  t("done", {}, { namespace: "common" })
+                  tc("done")
                 ) : isMulti ? (
                   t("uploadMerge", { count: queue.length })
                 ) : (

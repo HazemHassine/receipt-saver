@@ -1,7 +1,7 @@
 "use client";
 
 import { useAuth } from "@/components/auth-provider";
-import { SignInPage } from "@/components/sign-in-page";
+import { LandingPage } from "@/components/landing-page";
 import { useRouter } from "@/i18n/navigation";
 import { useEffect } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -25,7 +25,7 @@ export default function Home() {
   }
 
   if (!user) {
-    return <SignInPage />;
+    return <LandingPage />;
   }
 
   return null;

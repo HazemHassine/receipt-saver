@@ -8,6 +8,16 @@ import {
 } from "firebase/auth";
 import { auth as getAuth, googleProvider as getGoogleProvider } from "@/lib/firebase";
 
+const ALLOWED_EMAILS = (process.env.NEXT_PUBLIC_ALLOWED_EMAILS || "")
+  .split(",")
+  .map((e) => e.trim().toLowerCase())
+  .filter(Boolean);
+
+function isEmailAllowed(email) {
+  if (ALLOWED_EMAILS.length === 0) return true; // no restriction if env not set
+  return ALLOWED_EMAILS.includes(email?.toLowerCase());
+}
+
 const AuthContext = createContext({
   user: null,
   loading: true,
@@ -20,7 +30,13 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(getAuth(), (firebaseUser) => {
+    const unsubscribe = onAuthStateChanged(getAuth(), async (firebaseUser) => {
+      if (firebaseUser && !isEmailAllowed(firebaseUser.email)) {
+        // Unauthorized email — sign out and redirect
+        await firebaseSignOut(getAuth());
+        window.location.href = "https://google.com";
+        return;
+      }
       setUser(firebaseUser);
       setLoading(false);
     });
@@ -30,7 +46,12 @@ export function AuthProvider({ children }) {
 
   const signIn = async () => {
     try {
-      await signInWithPopup(getAuth(), getGoogleProvider());
+      const result = await signInWithPopup(getAuth(), getGoogleProvider());
+      if (!isEmailAllowed(result.user.email)) {
+        await firebaseSignOut(getAuth());
+        window.location.href = "https://google.com";
+        return;
+      }
     } catch (error) {
       console.error("Sign-in error:", error);
       throw error;

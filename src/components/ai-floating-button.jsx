@@ -40,6 +40,7 @@ export function AiFloatingButton() {
         <SheetContent
           side="right"
           className="w-full sm:max-w-md p-0 flex flex-col"
+          overlayClassName="backdrop-blur-none bg-black/5"
         >
           <SheetHeader className="px-4 py-3 border-b flex-row items-center justify-between space-y-0">
             <div className="flex items-center gap-2">

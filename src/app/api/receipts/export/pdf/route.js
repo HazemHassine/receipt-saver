@@ -151,7 +151,8 @@ async function generatePDF(reportName, receipts, filters) {
   }
 
   function drawText(text, x, yPos, { font = regularFont, size = 9, color = black, maxWidth } = {}) {
-    let str = String(text ?? "");
+    let str = String(text ?? "").replace(/[\n\r\t]/g, " ").replace(/\s+/g, " ").trim();
+    if (!str) return;
     if (maxWidth && font.widthOfTextAtSize(str, size) > maxWidth) {
       while (str.length > 1 && font.widthOfTextAtSize(str + "…", size) > maxWidth) {
         str = str.slice(0, -1);
