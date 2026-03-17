@@ -1,25 +1,20 @@
 "use client";
 
 import { useAuth } from "@/components/auth-provider";
+import { AppShell } from "@/components/app-shell";
 import { SignInPage } from "@/components/sign-in-page";
-import { useRouter } from "next/navigation";
-import { useEffect } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 
-export default function Home() {
+export default function AuthenticatedLayout({ children }) {
   const { user, loading } = useAuth();
-  const router = useRouter();
-
-  useEffect(() => {
-    if (!loading && user) {
-      router.replace("/dashboard");
-    }
-  }, [user, loading, router]);
 
   if (loading) {
     return (
       <div className="flex h-screen items-center justify-center">
-        <Skeleton className="h-8 w-32" />
+        <div className="space-y-4 text-center">
+          <Skeleton className="h-8 w-8 rounded-full mx-auto" />
+          <Skeleton className="h-4 w-32" />
+        </div>
       </div>
     );
   }
@@ -28,5 +23,5 @@ export default function Home() {
     return <SignInPage />;
   }
 
-  return null;
+  return <AppShell>{children}</AppShell>;
 }
