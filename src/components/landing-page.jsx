@@ -25,6 +25,9 @@ import {
   Camera,
   FileText,
   ChevronRight,
+  MessageCircle,
+  Cloud,
+  Smartphone,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
@@ -291,6 +294,59 @@ function GoalsMock() {
           </div>
         );
       })}
+    </div>
+  );
+}
+
+/* ─────────── Mock WhatsApp chat ─────────── */
+function WhatsAppMock() {
+  return (
+    <div className="bg-background rounded-xl border shadow-xl w-full max-w-[340px] overflow-hidden">
+      {/* Header */}
+      <div className="bg-foreground text-background px-4 py-3 flex items-center gap-3">
+        <div className="h-8 w-8 rounded-full bg-background/20 flex items-center justify-center">
+          <Receipt className="h-4 w-4" />
+        </div>
+        <div>
+          <p className="text-sm font-semibold">Receipt Saver</p>
+          <p className="text-[10px] opacity-70">Online</p>
+        </div>
+        <Smartphone className="h-4 w-4 ml-auto opacity-50" />
+      </div>
+      {/* Chat area */}
+      <div className="p-4 space-y-3 bg-muted/30 min-h-[200px]">
+        {/* User sends image */}
+        <div className="flex justify-end">
+          <div className="bg-primary text-primary-foreground rounded-lg px-3 py-2 text-xs max-w-[75%] space-y-1">
+            <div className="flex items-center gap-1.5">
+              <Camera className="h-3 w-3" />
+              <span className="font-medium">receipt.jpg</span>
+            </div>
+            <p className="text-[10px] opacity-70">12:34 PM</p>
+          </div>
+        </div>
+        {/* Bot processing */}
+        <div className="flex gap-2">
+          <div className="h-6 w-6 rounded-full bg-foreground text-background flex items-center justify-center shrink-0 mt-0.5">
+            <Receipt className="h-3 w-3" />
+          </div>
+          <div className="bg-background rounded-lg px-3 py-2 text-xs border space-y-1 max-w-[80%]">
+            <p>✅ *Receipt saved!*</p>
+            <p>🏪 *Fresh Market*</p>
+            <p>📅 Mar 15, 2026</p>
+            <p>💰 *Total: $33.94*</p>
+            <p>🏷️ _Groceries_</p>
+            <p>📦 5 items detected</p>
+            <p className="text-[10px] text-muted-foreground mt-1">12:34 PM</p>
+          </div>
+        </div>
+        {/* User asks question */}
+        <div className="flex justify-end">
+          <div className="bg-primary text-primary-foreground rounded-lg px-3 py-2 text-xs max-w-[75%]">
+            How much did I spend this month?
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
@@ -571,6 +627,39 @@ export function LandingPage() {
               </p>
             </FadeIn>
           </div>
+
+          {/* WhatsApp integration */}
+          <div className="grid gap-12 lg:grid-cols-2 items-center">
+            <FadeIn className="space-y-4 text-center lg:text-left">
+              <Badge variant="outline" className="text-xs gap-1">
+                <MessageCircle className="h-3 w-3" />
+                WhatsApp Integration
+              </Badge>
+              <h2 className="text-3xl font-extrabold tracking-tight">
+                Scan receipts from WhatsApp.
+              </h2>
+              <p className="text-muted-foreground max-w-md mx-auto lg:mx-0">
+                Link your WhatsApp number and send receipt photos directly — no app needed. 
+                Chat with your AI financial coach right from your messaging app.
+              </p>
+              <div className="space-y-2 text-sm">
+                {[
+                  "Send a photo → receipt saved instantly",
+                  "Ask spending questions via chat",
+                  "Get budget alerts on WhatsApp",
+                  "No extra app to install",
+                ].map((f, i) => (
+                  <div key={i} className="flex items-center gap-2 justify-center lg:justify-start">
+                    <CheckCircle2 className="h-4 w-4 text-foreground shrink-0" />
+                    <span>{f}</span>
+                  </div>
+                ))}
+              </div>
+            </FadeIn>
+            <FadeIn delay={150} className="flex justify-center">
+              <WhatsAppMock />
+            </FadeIn>
+          </div>
         </div>
       </section>
 
@@ -596,6 +685,7 @@ export function LandingPage() {
               { icon: Bot, title: "AI Financial Coach", desc: "Chat with your financial data. Get actionable insights and personalized advice." },
               { icon: Target, title: "Financial Goals", desc: "Set savings targets with deadlines. Track progress and get nudges from your AI coach." },
               { icon: BarChart3, title: "Reports & Export", desc: "Generate monthly reports, export receipts to CSV or PDF for tax season." },
+              { icon: MessageCircle, title: "WhatsApp Integration", desc: "Send receipt photos via WhatsApp to scan them. Chat with your AI advisor without opening the app." },
               { icon: Globe, title: "Multi-language", desc: "Full support for English, French, German, and Arabic with RTL layout." },
               { icon: Shield, title: "Secure by Design", desc: "Google authentication, encrypted storage, and your data is never shared." },
               { icon: Zap, title: "Lightning Fast", desc: "Most receipts are processed in under 3 seconds with real-time progress updates." },
@@ -652,8 +742,12 @@ export function LandingPage() {
             <Receipt className="h-4 w-4" />
             <span>Receipts &copy; {new Date().getFullYear()}</span>
           </div>
-          <p className="text-xs text-muted-foreground">
-            Built with Next.js, Firebase & Gemini AI
+          <p className="text-xs text-muted-foreground flex items-center gap-1.5">
+            Powered by
+            <Cloud className="h-3.5 w-3.5" />
+            Google Cloud Platform
+            <span className="mx-1">•</span>
+            Next.js, Firebase & Gemini AI
           </p>
         </div>
       </footer>

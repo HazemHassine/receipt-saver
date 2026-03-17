@@ -1,9 +1,9 @@
-# ── Stage 1: Install dependencies ──
+# ── Stage 1: Install ALL dependencies (including dev for build) ──
 FROM node:22-alpine AS deps
 WORKDIR /app
 
 COPY package.json package-lock.json* ./
-RUN npm ci --omit=dev
+RUN npm ci
 
 # ── Stage 2: Build the app ──
 FROM node:22-alpine AS builder

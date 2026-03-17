@@ -40,4 +40,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
-receipt-saver-62712-479580d28cd7.json
+receipt-saver.json
+deploy.sh
+google-cloud-sdk/

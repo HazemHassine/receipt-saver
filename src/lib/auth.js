@@ -1,7 +1,7 @@
 import { adminAuth } from "@/lib/firebase-admin";
 
 const ALLOWED_EMAILS = (process.env.UNLIMITED_EMAILS || "")
-  .split(",")
+  .split(/[,;]/)
   .map((e) => e.trim().toLowerCase())
   .filter(Boolean);
 

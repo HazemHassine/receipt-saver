@@ -9,7 +9,7 @@ import {
 import { auth as getAuth, googleProvider as getGoogleProvider } from "@/lib/firebase";
 
 const ALLOWED_EMAILS = (process.env.NEXT_PUBLIC_ALLOWED_EMAILS || "")
-  .split(",")
+  .split(/[,;]/)
   .map((e) => e.trim().toLowerCase())
   .filter(Boolean);
 

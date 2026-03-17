@@ -10,7 +10,7 @@ const CREDITS_PER_RECEIPT = 2;
  */
 function getUnlimitedEmails() {
   return (process.env.UNLIMITED_EMAILS || "")
-    .split(",")
+    .split(/[,;]/)
     .map((e) => e.trim().toLowerCase())
     .filter(Boolean);
 }
