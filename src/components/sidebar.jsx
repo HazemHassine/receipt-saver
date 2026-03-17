@@ -1,9 +1,9 @@
 "use client";
 
-import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { Link, usePathname } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/components/auth-provider";
+import { useTranslations } from "next-intl";
 import {
   LayoutDashboard,
   Upload,
@@ -15,6 +15,8 @@ import {
   Coins,
   Infinity,
   FileText,
+  PiggyBank,
+  Bot,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -22,22 +24,32 @@ import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { useState, useEffect } from "react";
 import { useAuthFetch } from "@/hooks/use-auth-fetch";
-
-const navItems = [
-  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/upload", label: "Upload", icon: Upload },
-  { href: "/receipts", label: "Receipts", icon: Receipt },
-  { href: "/reports", label: "Reports", icon: FileText },
-  { href: "/settings", label: "Settings", icon: Settings },
-];
+import { useBudget } from "@/components/budget-provider";
 
 export function Sidebar() {
+  const t = useTranslations("nav");
+  const tc = useTranslations("common");
   const pathname = usePathname();
   const { user, signOut } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
   const authFetch = useAuthFetch();
   const [credits, setCredits] = useState(null);
   const [unlimited, setUnlimited] = useState(false);
+  const { budgetingEnabled } = useBudget();
+
+  const baseNavItems = [
+    { href: "/dashboard", label: t("dashboard"), icon: LayoutDashboard },
+    { href: "/upload", label: t("upload"), icon: Upload },
+    { href: "/receipts", label: t("receipts"), icon: Receipt },
+    { href: "/reports", label: t("reports"), icon: FileText },
+  ];
+
+  const navItems = [
+    ...baseNavItems,
+    ...(budgetingEnabled ? [{ href: "/budget", label: t("budget"), icon: PiggyBank }] : []),
+    { href: "/advisor", label: t("advisor"), icon: Bot },
+    { href: "/settings", label: t("settings"), icon: Settings },
+  ];
 
   useEffect(() => {
     async function loadCredits() {
@@ -66,7 +78,7 @@ export function Sidebar() {
       {/* Logo */}
       <div className="flex items-center gap-2 px-6 py-5">
         <Receipt className="h-6 w-6" />
-        <span className="text-lg font-semibold tracking-tight">Receipts</span>
+        <span className="text-lg font-semibold tracking-tight">{tc("receipts")}</span>
       </div>
 
       <Separator />
@@ -112,11 +124,11 @@ export function Sidebar() {
         {credits !== null && (
           <div className="flex items-center gap-2 mb-3 px-1">
             <Coins className="h-3.5 w-3.5 text-muted-foreground" />
-            <span className="text-xs text-muted-foreground">Credits:</span>
+            <span className="text-xs text-muted-foreground">{tc("credits")}:</span>
             {unlimited ? (
               <Badge variant="secondary" className="text-xs px-1.5 py-0 gap-1">
                 <Infinity className="h-3 w-3" />
-                Unlimited
+                {tc("unlimited")}
               </Badge>
             ) : (
               <Badge
@@ -135,7 +147,7 @@ export function Sidebar() {
           onClick={signOut}
         >
           <LogOut className="h-4 w-4" />
-          Sign out
+          {tc("signOut")}
         </Button>
       </div>
     </div>

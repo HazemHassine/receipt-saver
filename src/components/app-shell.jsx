@@ -2,6 +2,7 @@
 
 import { useAuth } from "@/components/auth-provider";
 import { Sidebar } from "@/components/sidebar";
+import { AiFloatingButton } from "@/components/ai-floating-button";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export function AppShell({ children }) {
@@ -29,6 +30,7 @@ export function AppShell({ children }) {
         <div className="mx-auto max-w-6xl px-4 py-8 md:px-8">
           {children}
         </div>
+        <AiFloatingButton />
       </main>
     </div>
   );

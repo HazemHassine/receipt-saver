@@ -1,11 +1,13 @@
 "use client";
 
 import { useAuth } from "@/components/auth-provider";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Receipt } from "lucide-react";
 
 export function SignInPage() {
   const { signIn } = useAuth();
+  const t = useTranslations("signIn");
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center px-4">
@@ -13,9 +15,9 @@ export function SignInPage() {
         {/* Logo */}
         <div className="space-y-2">
           <Receipt className="mx-auto h-12 w-12" />
-          <h1 className="text-3xl font-bold tracking-tight">Receipts</h1>
+          <h1 className="text-3xl font-bold tracking-tight">{t("title")}</h1>
           <p className="text-muted-foreground">
-            Track and organize your expenses effortlessly.
+            {t("subtitle")}
           </p>
         </div>
 
@@ -47,7 +49,7 @@ export function SignInPage() {
         </Button>
 
         <p className="text-xs text-muted-foreground">
-          Your data is stored securely in Google Cloud.
+          {t("securityNote")}
         </p>
       </div>
     </div>

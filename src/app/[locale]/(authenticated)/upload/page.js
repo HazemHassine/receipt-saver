@@ -2,7 +2,8 @@
 
 import { useState, useCallback, useEffect, useRef } from "react";
 import { useAuthFetch } from "@/hooks/use-auth-fetch";
-import { useRouter } from "next/navigation";
+import { useRouter } from "@/i18n/navigation";
+import { useTranslations } from "next-intl";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -10,6 +11,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { useBudget } from "@/components/budget-provider";
 
 const MAX_FILES = 10;
 const VALID_TYPES = ["image/jpeg", "image/png", "image/webp"];
@@ -18,6 +20,8 @@ export default function UploadPage() {
   const authFetch = useAuthFetch();
   const router = useRouter();
   const inputRef = useRef(null);
+  const { budgetingEnabled, budgetingAlerts } = useBudget();
+  const t = useTranslations("upload");
 
   // Queue of { file, preview } objects
   const [queue, setQueue] = useState([]);
@@ -108,6 +112,24 @@ export default function UploadPage() {
       const label = data.imageCount > 1 ? `${data.imageCount} images merged` : "Receipt processed";
       toast.success(`${label} successfully!`);
 
+      // Check budget alerts after successful upload
+      if (budgetingEnabled && budgetingAlerts) {
+        try {
+          const alertRes = await authFetch("/api/budget/check");
+          if (alertRes.ok) {
+            const alertData = await alertRes.json();
+            for (const alert of alertData.alerts || []) {
+              const msg = alert.percent >= 100
+                ? `Budget Alert: You've exceeded your ${alert.category} limit (${alert.percent}%)`
+                : `Budget Alert: You've reached ${alert.percent}% of your ${alert.category} limit`;
+              toast.warning(msg, { duration: 6000 });
+            }
+          }
+        } catch {
+          // silent — don't block the flow for alert errors
+        }
+      }
+
       setTimeout(() => router.push(`/receipts/${data.receiptId}`), 900);
     } catch (err) {
       setStatus("error");
@@ -130,17 +152,17 @@ export default function UploadPage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Upload Receipt</h1>
+        <h1 className="text-2xl font-bold tracking-tight">{t("title")}</h1>
         <p className="text-muted-foreground">
-          Upload one image or multiple images of the same receipt — we&apos;ll merge them automatically.
+          {t("subtitle")}
         </p>
         {!unlimited && credits !== null && (
           <div className="flex items-center gap-2 mt-2">
             <Coins className="h-4 w-4 text-muted-foreground" />
             <span className={cn("text-sm", noCredits ? "text-destructive font-medium" : "text-muted-foreground")}>
               {noCredits
-                ? "Not enough credits to upload."
-                : `${credits} credits remaining (2 per receipt)`}
+                ? t("notEnoughCredits")
+                : t("creditsRemaining", { credits })}
             </span>
           </div>
         )}
@@ -162,10 +184,10 @@ export default function UploadPage() {
             <Upload className="h-8 w-8 text-muted-foreground" />
             <div className="text-center">
               <p className="text-sm font-medium">
-                {queue.length === 0 ? "Drop receipt images here" : "Drop more images to add"}
+                {queue.length === 0 ? t("dropHere") : t("dropMore")}
               </p>
               <p className="text-xs text-muted-foreground mt-1">
-                or click to browse • JPEG, PNG, WebP • Max 10 images • 10 MB each
+                {t("browseHint")}
               </p>
             </div>
             <input
@@ -184,7 +206,7 @@ export default function UploadPage() {
               {isMulti && (
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <Images className="h-4 w-4" />
-                  <span>{queue.length} images — will be merged into one receipt</span>
+                  <span>{t("imagesMerge", { count: queue.length })}</span>
                 </div>
               )}
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
@@ -220,7 +242,7 @@ export default function UploadPage() {
                     className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-muted-foreground/25 hover:border-muted-foreground/50 aspect-[3/4] text-muted-foreground hover:text-foreground transition-colors gap-2"
                   >
                     <Plus className="h-6 w-6" />
-                    <span className="text-xs">Add image</span>
+                    <span className="text-xs">{t("addImage")}</span>
                   </button>
                 )}
               </div>
@@ -231,13 +253,13 @@ export default function UploadPage() {
           {status === "processing" && (
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <Loader2 className="h-4 w-4 animate-spin" />
-              {isMulti ? `Merging ${queue.length} images and extracting data…` : "Extracting receipt data…"}
+              {isMulti ? t("merging", { count: queue.length }) : t("extracting")}
             </div>
           )}
           {status === "done" && (
             <div className="flex items-center gap-2 text-sm text-green-700">
               <CheckCircle2 className="h-4 w-4" />
-              Done! Redirecting…
+              {t("doneRedirecting")}
             </div>
           )}
           {status === "error" && (
@@ -256,17 +278,17 @@ export default function UploadPage() {
                 className="flex-1"
               >
                 {status === "processing" ? (
-                  <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Processing…</>
+                  <><Loader2 className="mr-2 h-4 w-4 animate-spin" />{t("processing")}</>
                 ) : status === "done" ? (
-                  "Done"
+                  t("done", {}, { namespace: "common" })
                 ) : isMulti ? (
-                  `Upload & Merge ${queue.length} Images`
+                  t("uploadMerge", { count: queue.length })
                 ) : (
-                  "Upload & Extract"
+                  t("uploadExtract")
                 )}
               </Button>
               {!busy && (
-                <Button variant="outline" onClick={reset}>Clear all</Button>
+                <Button variant="outline" onClick={reset}>{t("clearAll")}</Button>
               )}
             </div>
           )}

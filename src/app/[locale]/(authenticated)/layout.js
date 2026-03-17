@@ -5,6 +5,7 @@ import { AppShell } from "@/components/app-shell";
 import { SignInPage } from "@/components/sign-in-page";
 import { Skeleton } from "@/components/ui/skeleton";
 import { CurrencyProvider } from "@/components/currency-provider";
+import { BudgetProvider } from "@/components/budget-provider";
 
 export default function AuthenticatedLayout({ children }) {
   const { user, loading } = useAuth();
@@ -24,5 +25,5 @@ export default function AuthenticatedLayout({ children }) {
     return <SignInPage />;
   }
 
-  return <CurrencyProvider><AppShell>{children}</AppShell></CurrencyProvider>;
+  return <CurrencyProvider><BudgetProvider><AppShell>{children}</AppShell></BudgetProvider></CurrencyProvider>;
 }

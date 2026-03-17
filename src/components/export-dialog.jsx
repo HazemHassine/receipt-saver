@@ -24,6 +24,7 @@ import {
 import { Download, FileText, FileSpreadsheet, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import { useTranslations } from "next-intl";
 
 const CATEGORIES = [
   "groceries", "dining", "transport", "entertainment",
@@ -31,6 +32,8 @@ const CATEGORIES = [
 ];
 
 export function ExportDialog({ trigger, onReportCreated }) {
+  const t = useTranslations("exportDialog");
+  const tc = useTranslations("common");
   const [open, setOpen] = useState(false);
   const [exportFormat, setExportFormat] = useState("pdf");
   const [reportName, setReportName] = useState("");
@@ -76,7 +79,7 @@ export function ExportDialog({ trigger, onReportCreated }) {
         a.download = `${reportName || "receipts"}-${format(new Date(), "yyyy-MM-dd")}.csv`;
         a.click();
         URL.revokeObjectURL(url);
-        toast.success("CSV exported successfully");
+        toast.success(t("csvExported"));
       } else {
         // PDF — save as report
         const name = reportName || `Receipt Report - ${format(new Date(), "MMM d, yyyy")}`;
@@ -103,7 +106,7 @@ export function ExportDialog({ trigger, onReportCreated }) {
           a.click();
         }
 
-        toast.success("PDF report saved to Reports");
+        toast.success(t("pdfSaved"));
         if (data.report && onReportCreated) {
           onReportCreated(data.report);
         }
@@ -113,7 +116,7 @@ export function ExportDialog({ trigger, onReportCreated }) {
       resetForm();
     } catch (err) {
       console.error("Export error:", err);
-      toast.error(err.message || "Failed to export");
+      toast.error(err.message || t("exportFailed"));
     } finally {
       setExporting(false);
     }
@@ -137,22 +140,22 @@ export function ExportDialog({ trigger, onReportCreated }) {
           className="inline-flex items-center justify-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium shadow-xs hover:bg-accent hover:text-accent-foreground transition-colors gap-2"
         >
           <Download className="h-4 w-4" />
-          Export
+          {tc("export")}
         </button>
       )}
     <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) resetForm(); }}>
       <DialogContent className="sm:max-w-[480px]">
         <DialogHeader>
-          <DialogTitle>Export Receipts</DialogTitle>
+          <DialogTitle>{t("title")}</DialogTitle>
           <DialogDescription>
-            Choose format, date range, and categories to export.
+            {t("description")}
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-5 py-2">
           {/* Format */}
           <div className="space-y-2">
-            <Label>Format</Label>
+            <Label>{t("format")}</Label>
             <Select value={exportFormat} onValueChange={setExportFormat}>
               <SelectTrigger>
                 <SelectValue />
@@ -160,12 +163,12 @@ export function ExportDialog({ trigger, onReportCreated }) {
               <SelectContent>
                 <SelectItem value="pdf">
                   <span className="flex items-center gap-2">
-                    <FileText className="h-4 w-4" /> PDF Report
+                    <FileText className="h-4 w-4" /> {t("pdfReport")}
                   </span>
                 </SelectItem>
                 <SelectItem value="csv">
                   <span className="flex items-center gap-2">
-                    <FileSpreadsheet className="h-4 w-4" /> CSV Spreadsheet
+                    <FileSpreadsheet className="h-4 w-4" /> {t("csvSpreadsheet")}
                   </span>
                 </SelectItem>
               </SelectContent>
@@ -175,24 +178,24 @@ export function ExportDialog({ trigger, onReportCreated }) {
           {/* Report name (PDF only) */}
           {exportFormat === "pdf" && (
             <div className="space-y-2">
-              <Label>Report Name</Label>
+              <Label>{t("reportName")}</Label>
               <Input
                 placeholder={`Receipt Report - ${format(new Date(), "MMM d, yyyy")}`}
                 value={reportName}
                 onChange={(e) => setReportName(e.target.value)}
               />
               <p className="text-xs text-muted-foreground">
-                Leave blank for a default name. Saved to Reports page.
+                {t("reportNameHint")}
               </p>
             </div>
           )}
 
           {/* Date range */}
           <div className="space-y-2">
-            <Label>Date Range</Label>
+            <Label>{t("dateRange")}</Label>
             <div className="flex gap-3">
               <div className="flex-1 space-y-1">
-                <span className="text-xs text-muted-foreground">From</span>
+                <span className="text-xs text-muted-foreground">{tc("from")}</span>
                 <Input
                   type="date"
                   value={dateFrom}
@@ -200,7 +203,7 @@ export function ExportDialog({ trigger, onReportCreated }) {
                 />
               </div>
               <div className="flex-1 space-y-1">
-                <span className="text-xs text-muted-foreground">To</span>
+                <span className="text-xs text-muted-foreground">{tc("to")}</span>
                 <Input
                   type="date"
                   value={dateTo}
@@ -209,20 +212,20 @@ export function ExportDialog({ trigger, onReportCreated }) {
               </div>
             </div>
             <p className="text-xs text-muted-foreground">
-              Leave blank to include all dates.
+              {t("dateRangeHint")}
             </p>
           </div>
 
           {/* Categories */}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <Label>Categories</Label>
+              <Label>{t("categoriesLabel")}</Label>
               <button
                 type="button"
                 className="text-xs text-muted-foreground hover:text-foreground transition-colors"
                 onClick={selectAllCategories}
               >
-                {selectedCategories.length === CATEGORIES.length ? "Deselect all" : "Select all"}
+                {selectedCategories.length === CATEGORIES.length ? t("deselectAll") : t("selectAll")}
               </button>
             </div>
             <div className="grid grid-cols-3 gap-2">
@@ -240,14 +243,14 @@ export function ExportDialog({ trigger, onReportCreated }) {
               ))}
             </div>
             <p className="text-xs text-muted-foreground">
-              Leave unchecked to include all categories.
+              {t("categoriesHint")}
             </p>
           </div>
         </div>
 
         <DialogFooter>
           <Button variant="outline" onClick={() => { setOpen(false); resetForm(); }}>
-            Cancel
+            {tc("cancel")}
           </Button>
           <Button onClick={handleExport} disabled={exporting} className="gap-2">
             {exporting ? (
@@ -255,7 +258,7 @@ export function ExportDialog({ trigger, onReportCreated }) {
             ) : (
               <Download className="h-4 w-4" />
             )}
-            {exporting ? "Exporting…" : "Export"}
+            {exporting ? tc("exporting") : tc("export")}
           </Button>
         </DialogFooter>
       </DialogContent>

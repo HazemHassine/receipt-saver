@@ -34,10 +34,13 @@ import {
 import { format, parseISO } from "date-fns";
 import { toast } from "sonner";
 import { ExportDialog } from "@/components/export-dialog";
+import { useTranslations } from "next-intl";
 
 export default function ReportsPage() {
   const authFetch = useAuthFetch();
   const { formatAmount } = useCurrency();
+  const t = useTranslations("reports");
+  const tc = useTranslations("common");
   const [reports, setReports] = useState([]);
   const [loading, setLoading] = useState(true);
   const [deletingId, setDeletingId] = useState(null);
@@ -70,12 +73,12 @@ export default function ReportsPage() {
       const res = await authFetch(`/api/reports/${id}`, { method: "DELETE" });
       if (res.ok) {
         setReports((prev) => prev.filter((r) => r.id !== id));
-        toast.success("Report deleted");
+        toast.success(t("reportDeleted"));
       } else {
-        toast.error("Failed to delete report");
+        toast.error(t("failedDelete"));
       }
     } catch {
-      toast.error("Failed to delete report");
+      toast.error(t("failedDelete"));
     } finally {
       setDeletingId(null);
     }
@@ -89,9 +92,9 @@ export default function ReportsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Reports</h1>
+          <h1 className="text-2xl font-bold tracking-tight">{t("title")}</h1>
           <p className="text-muted-foreground">
-            {reports.length} saved report{reports.length !== 1 ? "s" : ""}
+            {tc("reportsCount", { count: reports.length })}
           </p>
         </div>
         <ExportDialog onReportCreated={handleReportCreated} />
@@ -100,12 +103,12 @@ export default function ReportsPage() {
       {reports.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-24 text-center">
           <FileText className="h-12 w-12 text-muted-foreground mb-4" />
-          <h3 className="text-lg font-medium">No reports yet</h3>
+          <h3 className="text-lg font-medium">{t("noReports")}</h3>
           <p className="text-sm text-muted-foreground mt-1 mb-4">
-            Export your receipts as PDF to create a report.
+            {t("noReportsDesc")}
           </p>
           <ExportDialog
-            trigger={<Button>Create Report</Button>}
+            trigger={<Button>{t("createReport")}</Button>}
             onReportCreated={handleReportCreated}
           />
         </div>
@@ -114,12 +117,12 @@ export default function ReportsPage() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Report Name</TableHead>
-                <TableHead>Date Created</TableHead>
-                <TableHead className="text-center">Receipts</TableHead>
-                <TableHead className="text-right">Total</TableHead>
-                <TableHead>Filters</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
+                <TableHead>{t("reportName")}</TableHead>
+                <TableHead>{t("dateCreated")}</TableHead>
+                <TableHead className="text-center">{t("receiptCount")}</TableHead>
+                <TableHead className="text-right">{t("total")}</TableHead>
+                <TableHead>{t("filters")}</TableHead>
+                <TableHead className="text-right">{t("actions")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -163,7 +166,7 @@ export default function ReportsPage() {
                         </Badge>
                       )}
                       {!report.filters?.from && !report.filters?.to && !report.filters?.categories && (
-                        <span className="text-xs text-muted-foreground">All data</span>
+                        <span className="text-xs text-muted-foreground">{t("allData")}</span>
                       )}
                     </div>
                   </TableCell>
@@ -184,20 +187,19 @@ export default function ReportsPage() {
                         </DialogTrigger>
                         <DialogContent>
                           <DialogHeader>
-                            <DialogTitle>Delete Report</DialogTitle>
+                            <DialogTitle>{t("deleteReport")}</DialogTitle>
                             <DialogDescription>
-                              Are you sure you want to delete &quot;{report.name}&quot;? This will
-                              remove the PDF and cannot be undone.
+                              {t("deleteConfirm", { name: report.name })}
                             </DialogDescription>
                           </DialogHeader>
                           <DialogFooter>
-                            <Button variant="outline">Cancel</Button>
+                            <Button variant="outline">{tc("cancel")}</Button>
                             <Button
                               variant="destructive"
                               onClick={() => handleDelete(report.id)}
                               disabled={deletingId === report.id}
                             >
-                              {deletingId === report.id ? "Deleting…" : "Delete"}
+                              {deletingId === report.id ? tc("deleting") : tc("delete")}
                             </Button>
                           </DialogFooter>
                         </DialogContent>

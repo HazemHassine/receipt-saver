@@ -32,8 +32,9 @@ import {
   ChevronDown,
 } from "lucide-react";
 import { format, parseISO, isAfter, isBefore, startOfDay, endOfDay } from "date-fns";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import { ExportDialog } from "@/components/export-dialog";
+import { useTranslations } from "next-intl";
 
 const CATEGORIES = [
   "groceries", "dining", "transport", "entertainment",
@@ -43,6 +44,8 @@ const CATEGORIES = [
 export default function ReceiptsPage() {
   const authFetch = useAuthFetch();
   const { formatAmount } = useCurrency();
+  const t = useTranslations("receiptsPage");
+  const tc = useTranslations("common");
   const [receipts, setReceipts] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -182,9 +185,9 @@ export default function ReceiptsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Receipts</h1>
+          <h1 className="text-2xl font-bold tracking-tight">{t("title")}</h1>
           <p className="text-muted-foreground">
-            {receipts.length} receipt{receipts.length !== 1 ? "s" : ""} total
+            {tc("receiptsCount", { count: receipts.length })}
           </p>
         </div>
         <div className="flex gap-2">
@@ -192,7 +195,7 @@ export default function ReceiptsPage() {
           <Link href="/upload">
             <Button className="gap-2">
               <Plus className="h-4 w-4" />
-              Upload
+              {tc("upload")}
             </Button>
           </Link>
         </div>
@@ -206,7 +209,7 @@ export default function ReceiptsPage() {
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Search merchant or category…"
+                placeholder={t("searchPlaceholder")}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-9"
@@ -217,10 +220,10 @@ export default function ReceiptsPage() {
               <PopoverTrigger className="inline-flex items-center justify-between rounded-md border border-input bg-background px-3 h-10 text-sm w-full sm:w-[170px] hover:bg-accent transition-colors gap-2">
                 <span className="truncate text-left">
                   {categoryFilter.length === 0
-                    ? "All categories"
+                    ? tc("allCategories")
                     : categoryFilter.length === 1
                     ? categoryFilter[0].charAt(0).toUpperCase() + categoryFilter[0].slice(1)
-                    : `${categoryFilter.length} categories`}
+                    : tc("categories", { count: categoryFilter.length })}
                 </span>
                 <ChevronDown className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
               </PopoverTrigger>
@@ -230,7 +233,7 @@ export default function ReceiptsPage() {
                     className="w-full text-left text-xs text-muted-foreground hover:text-foreground px-2 py-1 transition-colors"
                     onClick={() => setCategoryFilter([])}
                   >
-                    {categoryFilter.length > 0 ? "Clear selection" : "All categories"}
+                    {categoryFilter.length > 0 ? tc("clearSelection") : tc("allCategories")}
                   </button>
                   {CATEGORIES.map((cat) => (
                     <label
@@ -252,10 +255,10 @@ export default function ReceiptsPage() {
               <PopoverTrigger className="inline-flex items-center justify-between rounded-md border border-input bg-background px-3 h-10 text-sm w-full sm:w-[155px] hover:bg-accent transition-colors gap-2">
                 <span className="truncate text-left">
                   {statusFilter.length === 0
-                    ? "All statuses"
+                    ? tc("allStatuses")
                     : statusFilter.length === 1
                     ? statusFilter[0].charAt(0).toUpperCase() + statusFilter[0].slice(1)
-                    : `${statusFilter.length} statuses`}
+                    : tc("statuses", { count: statusFilter.length })}
                 </span>
                 <ChevronDown className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
               </PopoverTrigger>
@@ -265,7 +268,7 @@ export default function ReceiptsPage() {
                     className="w-full text-left text-xs text-muted-foreground hover:text-foreground px-2 py-1 transition-colors"
                     onClick={() => setStatusFilter([])}
                   >
-                    {statusFilter.length > 0 ? "Clear selection" : "All statuses"}
+                    {statusFilter.length > 0 ? tc("clearSelection") : tc("allStatuses")}
                   </button>
                   {["completed", "processing", "failed"].map((s) => (
                     <label
@@ -285,7 +288,7 @@ export default function ReceiptsPage() {
           </div>
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
             <div className="flex items-center gap-2">
-              <label className="text-sm text-muted-foreground whitespace-nowrap">From</label>
+              <label className="text-sm text-muted-foreground whitespace-nowrap">{tc("from")}</label>
               <Input
                 type="date"
                 value={dateFrom}
@@ -294,7 +297,7 @@ export default function ReceiptsPage() {
               />
             </div>
             <div className="flex items-center gap-2">
-              <label className="text-sm text-muted-foreground whitespace-nowrap">To</label>
+              <label className="text-sm text-muted-foreground whitespace-nowrap">{tc("to")}</label>
               <Input
                 type="date"
                 value={dateTo}
@@ -305,12 +308,12 @@ export default function ReceiptsPage() {
             {hasActiveFilters && (
               <Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground" onClick={clearFilters}>
                 <X className="h-3.5 w-3.5" />
-                Clear filters
+                {tc("clearFilters")}
               </Button>
             )}
             {hasActiveFilters && (
               <span className="text-sm text-muted-foreground ml-auto">
-                {filtered.length} result{filtered.length !== 1 ? "s" : ""}
+                {tc("results", { count: filtered.length })}
               </span>
             )}
           </div>
@@ -320,22 +323,22 @@ export default function ReceiptsPage() {
       {receipts.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-24 text-center">
           <Receipt className="h-12 w-12 text-muted-foreground mb-4" />
-          <h3 className="text-lg font-medium">No receipts yet</h3>
+          <h3 className="text-lg font-medium">{t("noReceipts")}</h3>
           <p className="text-sm text-muted-foreground mt-1 mb-4">
-            Upload your first receipt to get started.
+            {t("uploadFirst")}
           </p>
           <Link href="/upload">
-            <Button>Upload Receipt</Button>
+            <Button>{t("uploadReceipt")}</Button>
           </Link>
         </div>
       ) : filtered.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-16 text-center">
           <Search className="h-10 w-10 text-muted-foreground mb-3" />
-          <h3 className="text-lg font-medium">No matching receipts</h3>
+          <h3 className="text-lg font-medium">{t("noMatching")}</h3>
           <p className="text-sm text-muted-foreground mt-1 mb-4">
-            Try adjusting your filters or search query.
+            {t("adjustFilters")}
           </p>
-          <Button variant="outline" onClick={clearFilters}>Clear filters</Button>
+          <Button variant="outline" onClick={clearFilters}>{tc("clearFilters")}</Button>
         </div>
       ) : (
         <div className="rounded-lg border">
@@ -392,7 +395,7 @@ export default function ReceiptsPage() {
                       href={`/receipts/${receipt.id}`}
                       className="font-medium hover:underline"
                     >
-                      {receipt.merchant || "Unknown"}
+                      {receipt.merchant || t("unknown")}
                     </Link>
                   </TableCell>
                   <TableCell className="text-muted-foreground">

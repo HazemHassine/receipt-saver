@@ -30,10 +30,12 @@ import {
   parseISO,
   subMonths,
 } from "date-fns";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
+import { useTranslations } from "next-intl";
 import { CategoryChart } from "@/components/category-chart";
 import { MonthlyTrendChart } from "@/components/monthly-trend-chart";
 import { ExportDialog } from "@/components/export-dialog";
+import { useBudget } from "@/components/budget-provider";
 
 const CATEGORIES = [
   "groceries", "dining", "transport", "entertainment",
@@ -45,6 +47,10 @@ const PAYMENT_METHODS = ["cash", "credit", "debit", "visa", "mastercard", "amex"
 export default function DashboardPage() {
   const authFetch = useAuthFetch();
   const { formatAmount } = useCurrency();
+  const { budgetingEnabled, income } = useBudget();
+  const t = useTranslations("dashboard");
+  const tc = useTranslations("common");
+  const tCat = useTranslations("categories");
   const [receipts, setReceipts] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -202,8 +208,8 @@ export default function DashboardPage() {
       {/* Header */}
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
-          <p className="text-muted-foreground">Where is your money going, and what changed?</p>
+          <h1 className="text-2xl font-bold tracking-tight">{t("title")}</h1>
+          <p className="text-muted-foreground">{t("subtitle")}</p>
         </div>
         <ExportDialog />
       </div>
@@ -211,11 +217,11 @@ export default function DashboardPage() {
       {/* Filters */}
       <div className="flex flex-wrap gap-3 items-center">
         <div className="flex items-center gap-2">
-          <span className="text-sm text-muted-foreground whitespace-nowrap">From</span>
+          <span className="text-sm text-muted-foreground whitespace-nowrap">{tc("from")}</span>
           <Input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className="w-[150px] h-8 text-sm" />
         </div>
         <div className="flex items-center gap-2">
-          <span className="text-sm text-muted-foreground whitespace-nowrap">To</span>
+          <span className="text-sm text-muted-foreground whitespace-nowrap">{tc("to")}</span>
           <Input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className="w-[150px] h-8 text-sm" />
         </div>
         {/* Category multi-select */}
@@ -223,10 +229,10 @@ export default function DashboardPage() {
           <PopoverTrigger className="inline-flex items-center justify-between rounded-md border border-input bg-background px-3 h-8 text-sm w-[155px] hover:bg-accent transition-colors gap-2">
             <span className="truncate text-left">
               {categoryFilter.length === 0
-                ? "All categories"
+                ? tc("allCategories")
                 : categoryFilter.length === 1
                 ? categoryFilter[0].charAt(0).toUpperCase() + categoryFilter[0].slice(1)
-                : `${categoryFilter.length} categories`}
+                : tc("categories", { count: categoryFilter.length })}
             </span>
             <ChevronDown className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
           </PopoverTrigger>
@@ -236,7 +242,7 @@ export default function DashboardPage() {
                 className="w-full text-left text-xs text-muted-foreground hover:text-foreground px-2 py-1 transition-colors"
                 onClick={() => setCategoryFilter([])}
               >
-                {categoryFilter.length > 0 ? "Clear selection" : "All categories"}
+                {categoryFilter.length > 0 ? tc("clearSelection") : tc("allCategories")}
               </button>
               {CATEGORIES.map((cat) => (
                 <label
@@ -258,10 +264,10 @@ export default function DashboardPage() {
           <PopoverTrigger className="inline-flex items-center justify-between rounded-md border border-input bg-background px-3 h-8 text-sm w-[145px] hover:bg-accent transition-colors gap-2">
             <span className="truncate text-left">
               {paymentFilter.length === 0
-                ? "All payments"
+                ? tc("allPayments")
                 : paymentFilter.length === 1
                 ? paymentFilter[0].charAt(0).toUpperCase() + paymentFilter[0].slice(1)
-                : `${paymentFilter.length} methods`}
+                : tc("methods", { count: paymentFilter.length })}
             </span>
             <ChevronDown className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
           </PopoverTrigger>
@@ -271,7 +277,7 @@ export default function DashboardPage() {
                 className="w-full text-left text-xs text-muted-foreground hover:text-foreground px-2 py-1 transition-colors"
                 onClick={() => setPaymentFilter([])}
               >
-                {paymentFilter.length > 0 ? "Clear selection" : "All payments"}
+                {paymentFilter.length > 0 ? tc("clearSelection") : tc("allPayments")}
               </button>
               {PAYMENT_METHODS.map((pm) => (
                 <label
@@ -290,30 +296,30 @@ export default function DashboardPage() {
         </Popover>
         {hasFilters && (
           <Button variant="ghost" size="sm" className="h-8 gap-1.5 text-muted-foreground" onClick={clearFilters}>
-            <X className="h-3.5 w-3.5" /> Clear
+            <X className="h-3.5 w-3.5" /> {tc("clear")}
           </Button>
         )}
         {hasFilters && (
-          <span className="text-sm text-muted-foreground">{filtered.length} receipt{filtered.length !== 1 ? "s" : ""}</span>
+          <span className="text-sm text-muted-foreground">{tc("receiptsCount", { count: filtered.length })}</span>
         )}
       </div>
 
       {/* Stats cards */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className={`grid gap-4 sm:grid-cols-2 ${budgetingEnabled ? "lg:grid-cols-5" : "lg:grid-cols-4"}`}>
         <StatCard
-          title="Total Spend"
+          title={t("totalSpend")}
           value={formatAmount(stats.totalSpend)}
-          sub={hasFilters ? "filtered period" : "all time"}
+          sub={hasFilters ? t("filteredPeriod") : t("allTime")}
           icon={<DollarSign className="h-4 w-4 text-muted-foreground" />}
         />
         <StatCard
-          title="Receipts"
+          title={t("receipts")}
           value={stats.receiptCount}
-          sub={`avg ${formatAmount(stats.avgPerReceipt)} each`}
+          sub={t("avgEach", { amount: formatAmount(stats.avgPerReceipt) })}
           icon={<Receipt className="h-4 w-4 text-muted-foreground" />}
         />
         <StatCard
-          title="This Month"
+          title={t("thisMonth")}
           value={formatAmount(stats.thisMonthTotal)}
           sub={
             stats.monthDelta !== null ? (
@@ -321,26 +327,38 @@ export default function DashboardPage() {
                 {stats.monthDelta > 0
                   ? <TrendingUp className="h-3.5 w-3.5" />
                   : <TrendingDown className="h-3.5 w-3.5" />}
-                {Math.abs(stats.monthDelta).toFixed(1)}% vs last month
+                {t("vsLastMonth", { percent: Math.abs(stats.monthDelta).toFixed(1) })}
               </span>
-            ) : `${formatAmount(stats.lastMonthTotal)} last month`
+            ) : t("lastMonth", { amount: formatAmount(stats.lastMonthTotal) })
           }
           icon={<Calendar className="h-4 w-4 text-muted-foreground" />}
         />
         <StatCard
-          title="Top Category"
+          title={t("topCategory")}
           value={<span className="capitalize">{stats.categoryData[0]?.name || "—"}</span>}
-          sub={stats.categoryData[0] ? formatAmount(stats.categoryData[0].value) : "no data yet"}
+          sub={stats.categoryData[0] ? formatAmount(stats.categoryData[0].value) : t("noDataYet")}
           icon={<TrendingUp className="h-4 w-4 text-muted-foreground" />}
         />
+        {budgetingEnabled && (
+          <StatCard
+            title={t("remainingBalance")}
+            value={
+              <span className={(income?.amount || 0) - stats.thisMonthTotal < 0 ? "text-destructive" : ""}>
+                {formatAmount((income?.amount || 0) - stats.thisMonthTotal)}
+              </span>
+            }
+            sub={t("incomeMinusMonth")}
+            icon={<DollarSign className="h-4 w-4 text-muted-foreground" />}
+          />
+        )}
       </div>
 
       {/* Monthly trend + Category chart */}
       <div className="grid gap-6 lg:grid-cols-2">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-base">Monthly Spend Trend</CardTitle>
-            <p className="text-xs text-muted-foreground">Last 12 months</p>
+            <CardTitle className="text-base">{t("monthlySpendTrend")}</CardTitle>
+            <p className="text-xs text-muted-foreground">{t("last12Months")}</p>
           </CardHeader>
           <CardContent>
             <MonthlyTrendChart data={stats.monthlyTrend} />
@@ -349,13 +367,13 @@ export default function DashboardPage() {
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-base">Spend by Category</CardTitle>
+            <CardTitle className="text-base">{t("spendByCategory")}</CardTitle>
           </CardHeader>
           <CardContent>
             {stats.categoryData.length > 0 ? (
               <CategoryChart data={stats.categoryData} />
             ) : (
-              <p className="text-sm text-muted-foreground py-8 text-center">No data yet.</p>
+              <p className="text-sm text-muted-foreground py-8 text-center">{tc("noData")}</p>
             )}
           </CardContent>
         </Card>
@@ -366,9 +384,9 @@ export default function DashboardPage() {
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-base flex items-center gap-2">
-              <Store className="h-4 w-4" /> Merchant Leaderboard
+              <Store className="h-4 w-4" /> {t("merchantLeaderboard")}
             </CardTitle>
-            <p className="text-xs text-muted-foreground">Top merchants by spend</p>
+            <p className="text-xs text-muted-foreground">{t("topMerchantsBySpend")}</p>
           </CardHeader>
           <CardContent>
             {stats.merchantLeaderboard.length > 0 ? (
@@ -397,14 +415,14 @@ export default function DashboardPage() {
                 })}
               </div>
             ) : (
-              <p className="text-sm text-muted-foreground py-8 text-center">No receipts yet.</p>
+              <p className="text-sm text-muted-foreground py-8 text-center">{t("noReceiptsYet")}</p>
             )}
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-base">Recent Receipts</CardTitle>
+            <CardTitle className="text-base">{t("recentReceipts")}</CardTitle>
           </CardHeader>
           <CardContent>
             {stats.recentReceipts.length > 0 ? (
@@ -417,11 +435,11 @@ export default function DashboardPage() {
                   >
                     <div className="space-y-0.5 min-w-0 mr-3">
                       <p className="text-sm font-medium group-hover:underline truncate">
-                        {receipt.merchant || "Unknown merchant"}
+                        {receipt.merchant || t("unknownMerchant")}
                       </p>
                       <div className="flex items-center gap-2 text-xs text-muted-foreground">
                         <Calendar className="h-3 w-3 shrink-0" />
-                        {receipt.date ? format(parseISO(receipt.date), "MMM d, yyyy") : "No date"}
+                        {receipt.date ? format(parseISO(receipt.date), "MMM d, yyyy") : t("noDate")}
                       </div>
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
@@ -433,13 +451,13 @@ export default function DashboardPage() {
                   </Link>
                 ))}
                 <Link href="/receipts" className="block text-xs text-muted-foreground hover:text-foreground transition-colors pt-1">
-                  View all receipts →
+                  {t("viewAll")}
                 </Link>
               </div>
             ) : (
               <p className="text-sm text-muted-foreground py-8 text-center">
                 No receipts yet.{" "}
-                <Link href="/upload" className="underline">Upload one</Link>.
+                <Link href="/upload" className="underline">{t("uploadOne")}</Link>.
               </p>
             )}
           </CardContent>

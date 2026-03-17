@@ -1,3 +1,7 @@
+import createNextIntlPlugin from 'next-intl/plugin';
+
+const withNextIntl = createNextIntlPlugin('./src/i18n/request.js');
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   // Required for Cloud Run deployment
@@ -21,4 +25,4 @@ const nextConfig = {
   turbopack: {},
 };
 
-export default nextConfig;
+export default withNextIntl(nextConfig);

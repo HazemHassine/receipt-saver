@@ -1,9 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
+import { useRouter } from "@/i18n/navigation";
 import { useAuthFetch } from "@/hooks/use-auth-fetch";
 import { useCurrency } from "@/components/currency-provider";
+import { useTranslations } from "next-intl";
+import { cn } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -63,6 +66,8 @@ export default function ReceiptDetailPage() {
   const router = useRouter();
   const authFetch = useAuthFetch();
   const { formatAmount } = useCurrency();
+  const t = useTranslations("receiptDetail");
+  const tc = useTranslations("common");
   const fmtMoney = (v) => v == null ? "—" : formatAmount(v);
   const [receipt, setReceipt] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -81,7 +86,7 @@ export default function ReceiptDetailPage() {
           const data = await res.json();
           setReceipt(data.receipt);
         } else {
-          toast.error("Receipt not found");
+          toast.error(t("notFound"));
           router.push("/receipts");
         }
       } catch (err) {
@@ -124,14 +129,14 @@ export default function ReceiptDetailPage() {
         const data = await res.json();
         setReceipt(data.receipt);
         setEditing(false);
-        toast.success("Receipt updated");
+        toast.success(t("receiptUpdated"));
       } else {
-        toast.error("Failed to update receipt");
+        toast.error(t("failedUpdate"));
       }
     } catch {
-      toast.error("Failed to update receipt");
+      toast.error(t("failedUpdate"));
     } finally {
-      setSaving(false);
+      setSaving(true);
     }
   };
 
@@ -142,13 +147,13 @@ export default function ReceiptDetailPage() {
         method: "DELETE",
       });
       if (res.ok) {
-        toast.success("Receipt deleted");
+        toast.success(t("receiptDeleted"));
         router.push("/receipts");
       } else {
-        toast.error("Failed to delete receipt");
+        toast.error(t("failedDelete"));
       }
     } catch {
-      toast.error("Failed to delete receipt");
+      toast.error(t("failedDelete"));
     } finally {
       setDeleting(false);
     }
@@ -172,12 +177,12 @@ export default function ReceiptDetailPage() {
           </Button>
           <div>
             <h1 className="text-2xl font-bold tracking-tight">
-              {receipt.merchant || "Receipt Details"}
+              {receipt.merchant || t("title")}
             </h1>
             <p className="text-sm text-muted-foreground">
               {receipt.date
                 ? format(parseISO(receipt.date), "MMMM d, yyyy")
-                : "No date"}
+                : t("noDate")}
             </p>
           </div>
         </div>
@@ -185,17 +190,17 @@ export default function ReceiptDetailPage() {
           {!editing ? (
             <Button variant="outline" size="sm" className="gap-2" onClick={startEditing}>
               <Pencil className="h-3.5 w-3.5" />
-              Edit
+              {tc("edit")}
             </Button>
           ) : (
             <>
               <Button variant="outline" size="sm" onClick={cancelEditing}>
                 <X className="h-3.5 w-3.5 mr-1" />
-                Cancel
+                {tc("cancel")}
               </Button>
               <Button size="sm" onClick={saveEdits} disabled={saving}>
                 <Save className="h-3.5 w-3.5 mr-1" />
-                {saving ? "Saving…" : "Save"}
+                {saving ? tc("saving") : tc("save")}
               </Button>
             </>
           )}
@@ -205,21 +210,21 @@ export default function ReceiptDetailPage() {
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Delete Receipt</DialogTitle>
+                <DialogTitle>{t("deleteTitle")}</DialogTitle>
                 <DialogDescription>
-                  This will permanently delete this receipt and its image. This action cannot be undone.
+                  {t("deleteDescription")}
                 </DialogDescription>
               </DialogHeader>
               <DialogFooter>
                 <Button variant="outline" onClick={() => {}}>
-                  Cancel
+                  {tc("cancel")}
                 </Button>
                 <Button
                   variant="destructive"
                   onClick={deleteReceipt}
                   disabled={deleting}
                 >
-                  {deleting ? "Deleting…" : "Delete"}
+                  {deleting ? tc("deleting") : tc("delete")}
                 </Button>
               </DialogFooter>
             </DialogContent>
@@ -233,8 +238,8 @@ export default function ReceiptDetailPage() {
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-base flex items-center gap-2">
               {receipt.imageUrls?.length > 1 ? (
-                <><Images className="h-4 w-4" /> Receipt Images ({receipt.imageUrls.length})</>
-              ) : "Receipt Image"}
+                <><Images className="h-4 w-4" /> {t("receiptImages", { count: receipt.imageUrls.length })}</>
+              ) : t("receiptImage")}
             </CardTitle>
             {receipt.imageUrls?.length > 1 && (
               <span className="text-xs text-muted-foreground">
@@ -254,7 +259,7 @@ export default function ReceiptDetailPage() {
                 />
               ) : (
                 <div className="flex items-center justify-center h-64 rounded-lg border bg-muted">
-                  <p className="text-sm text-muted-foreground">No image available</p>
+                  <p className="text-sm text-muted-foreground">{t("noImageAvailable")}</p>
                 </div>
               )}
               {/* Prev / Next arrows */}
@@ -305,7 +310,7 @@ export default function ReceiptDetailPage() {
           {/* Info card */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">Details</CardTitle>
+              <CardTitle className="text-base">{t("details")}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               {editing ? (

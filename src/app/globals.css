@@ -123,3 +123,59 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* ── highlight.js theme for AI code blocks ── */
+.hljs {
+  background: transparent !important;
+  padding: 0 !important;
+}
+.hljs-keyword,
+.hljs-selector-tag,
+.hljs-built_in {
+  color: oklch(0.55 0.15 270);
+}
+.hljs-string,
+.hljs-attr {
+  color: oklch(0.55 0.15 150);
+}
+.hljs-number,
+.hljs-literal {
+  color: oklch(0.55 0.15 50);
+}
+.hljs-comment {
+  color: oklch(0.55 0 0);
+  font-style: italic;
+}
+.hljs-title,
+.hljs-function {
+  color: oklch(0.5 0.15 230);
+}
+.hljs-variable,
+.hljs-params {
+  color: oklch(0.5 0.1 30);
+}
+
+.dark .hljs-keyword,
+.dark .hljs-selector-tag,
+.dark .hljs-built_in {
+  color: oklch(0.75 0.15 270);
+}
+.dark .hljs-string,
+.dark .hljs-attr {
+  color: oklch(0.75 0.15 150);
+}
+.dark .hljs-number,
+.dark .hljs-literal {
+  color: oklch(0.75 0.15 50);
+}
+.dark .hljs-comment {
+  color: oklch(0.55 0 0);
+}
+.dark .hljs-title,
+.dark .hljs-function {
+  color: oklch(0.7 0.15 230);
+}
+.dark .hljs-variable,
+.dark .hljs-params {
+  color: oklch(0.7 0.1 30);
+}

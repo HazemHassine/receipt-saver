@@ -2,7 +2,7 @@
 
 import { useAuth } from "@/components/auth-provider";
 import { SignInPage } from "@/components/sign-in-page";
-import { useRouter } from "next/navigation";
+import { useRouter } from "@/i18n/navigation";
 import { useEffect } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 

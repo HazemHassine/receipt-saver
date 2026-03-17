@@ -17,6 +17,10 @@ export async function GET(request) {
         credits: userData.credits,
         unlimited: userData.credits === -1,
         preferredCurrency: userData.preferredCurrency || "USD",
+        features: {
+          budgetingEnabled: !!userData.features?.budgetingEnabled,
+          budgetingAlerts: !!userData.features?.budgetingAlerts,
+        },
       },
     });
   } catch (error) {
@@ -34,7 +38,7 @@ export async function PATCH(request) {
 
   try {
     const body = await request.json();
-    const allowed = ["preferredCurrency"];
+    const allowed = ["preferredCurrency", "features"];
     const updates = {};
     for (const key of allowed) {
       if (body[key] !== undefined) updates[key] = body[key];
