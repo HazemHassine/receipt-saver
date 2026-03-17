@@ -1,14 +1,18 @@
 "use client";
 
+import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/components/auth-provider";
 import { useCurrency, CURRENCIES } from "@/components/currency-provider";
 import { useBudget } from "@/components/budget-provider";
+import { useAuthFetch } from "@/hooks/use-auth-fetch";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
 import {
   Select,
   SelectContent,
@@ -16,7 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { LogOut, Globe } from "lucide-react";
+import { LogOut, Globe, MessageCircle, Link2, Unlink, Loader2, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 import { useTranslations, useLocale } from "next-intl";
 import { useRouter, usePathname } from "@/i18n/navigation";
@@ -37,6 +41,32 @@ export default function SettingsPage() {
   const locale = useLocale();
   const router = useRouter();
   const pathname = usePathname();
+  const authFetch = useAuthFetch();
+
+  // WhatsApp state
+  const [whatsappPhone, setWhatsappPhone] = useState("");
+  const [linkedPhone, setLinkedPhone] = useState(null);
+  const [whatsappLoading, setWhatsappLoading] = useState(false);
+  const [whatsappChecking, setWhatsappChecking] = useState(true);
+
+  const fetchLinkedPhone = useCallback(async () => {
+    try {
+      setWhatsappChecking(true);
+      const res = await authFetch("/api/whatsapp/link");
+      if (res.ok) {
+        const data = await res.json();
+        setLinkedPhone(data.phone);
+      }
+    } catch {
+      // ignore
+    } finally {
+      setWhatsappChecking(false);
+    }
+  }, [authFetch]);
+
+  useEffect(() => {
+    if (user) fetchLinkedPhone();
+  }, [user, fetchLinkedPhone]);
 
   const initials = user?.displayName
     ?.split(" ")
@@ -52,6 +82,51 @@ export default function SettingsPage() {
 
   function handleLanguageChange(newLocale) {
     router.replace(pathname, { locale: newLocale });
+  }
+
+  async function handleLinkWhatsApp() {
+    const phone = whatsappPhone.trim();
+    if (!/^\+\d{7,15}$/.test(phone)) {
+      toast.error(t("whatsappInvalidPhone"));
+      return;
+    }
+    setWhatsappLoading(true);
+    try {
+      const res = await authFetch("/api/whatsapp/link", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ phone }),
+      });
+      if (res.ok) {
+        setLinkedPhone(phone);
+        setWhatsappPhone("");
+        toast.success(t("whatsappLinked"));
+      } else {
+        const data = await res.json();
+        toast.error(data.error || t("whatsappLinkFailed"));
+      }
+    } catch {
+      toast.error(t("whatsappLinkFailed"));
+    } finally {
+      setWhatsappLoading(false);
+    }
+  }
+
+  async function handleUnlinkWhatsApp() {
+    setWhatsappLoading(true);
+    try {
+      const res = await authFetch("/api/whatsapp/link", { method: "DELETE" });
+      if (res.ok) {
+        setLinkedPhone(null);
+        toast.success(t("whatsappUnlinked"));
+      } else {
+        toast.error(t("whatsappUnlinkFailed"));
+      }
+    } catch {
+      toast.error(t("whatsappUnlinkFailed"));
+    } finally {
+      setWhatsappLoading(false);
+    }
   }
 
   return (
@@ -195,6 +270,88 @@ export default function SettingsPage() {
               }}
             />
           </div>
+        </CardContent>
+      </Card>
+
+      <Card className="max-w-lg">
+        <CardHeader>
+          <CardTitle className="text-base flex items-center gap-2">
+            <MessageCircle className="h-4 w-4" />
+            {t("whatsapp")}
+          </CardTitle>
+          <CardDescription>{t("whatsappDesc")}</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {whatsappChecking ? (
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              {tc("loading")}
+            </div>
+          ) : linkedPhone ? (
+            <>
+              <div className="flex items-center gap-3">
+                <Badge variant="secondary" className="gap-1.5 text-sm py-1 px-3">
+                  <CheckCircle2 className="h-3.5 w-3.5 text-green-600" />
+                  {t("whatsappConnected")}
+                </Badge>
+              </div>
+              <div className="flex items-center justify-between rounded-md border p-3">
+                <div>
+                  <p className="text-sm font-medium">{linkedPhone}</p>
+                  <p className="text-xs text-muted-foreground">{t("whatsappLinkedHint")}</p>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="gap-1.5 text-destructive"
+                  onClick={handleUnlinkWhatsApp}
+                  disabled={whatsappLoading}
+                >
+                  {whatsappLoading ? (
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  ) : (
+                    <Unlink className="h-3.5 w-3.5" />
+                  )}
+                  {t("whatsappUnlink")}
+                </Button>
+              </div>
+              <div className="rounded-md bg-muted/50 p-3 text-xs text-muted-foreground space-y-1">
+                <p className="font-medium text-foreground">{t("whatsappHowTo")}</p>
+                <p>{t("whatsappHowToDesc")}</p>
+              </div>
+            </>
+          ) : (
+            <>
+              <p className="text-sm text-muted-foreground">
+                {t("whatsappNotLinked")}
+              </p>
+              <div className="flex items-center gap-2">
+                <Input
+                  type="tel"
+                  placeholder={t("whatsappPhonePlaceholder")}
+                  value={whatsappPhone}
+                  onChange={(e) => setWhatsappPhone(e.target.value)}
+                  className="w-52"
+                />
+                <Button
+                  onClick={handleLinkWhatsApp}
+                  disabled={whatsappLoading || !whatsappPhone.trim()}
+                  className="gap-1.5"
+                  size="sm"
+                >
+                  {whatsappLoading ? (
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  ) : (
+                    <Link2 className="h-3.5 w-3.5" />
+                  )}
+                  {t("whatsappLink")}
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                {t("whatsappPhoneHint")}
+              </p>
+            </>
+          )}
         </CardContent>
       </Card>
     </div>
