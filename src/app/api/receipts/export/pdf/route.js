@@ -94,12 +94,21 @@ export async function GET(request) {
     // Generate download URL
     const downloadUrl = await getSignedUrl(filePath);
 
+    const totalAmount = receipts.reduce((sum, r) => sum + (r.total || 0), 0);
+
     return Response.json({
       report: {
         id: reportRef.id,
         name: reportName,
         downloadUrl,
         receiptCount: receipts.length,
+        totalAmount,
+        filters: {
+          from: from || null,
+          to: to || null,
+          categories: categories || null,
+        },
+        createdAt: new Date().toISOString(),
       },
     });
   } catch (error) {

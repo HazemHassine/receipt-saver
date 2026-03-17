@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useAuthFetch } from "@/hooks/use-auth-fetch";
+import { useCurrency } from "@/components/currency-provider";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -61,6 +62,8 @@ export default function ReceiptDetailPage() {
   const { id } = useParams();
   const router = useRouter();
   const authFetch = useAuthFetch();
+  const { formatAmount } = useCurrency();
+  const fmtMoney = (v) => v == null ? "—" : formatAmount(v);
   const [receipt, setReceipt] = useState(null);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
@@ -553,11 +556,6 @@ function DetailRow({ icon: Icon, label, value }) {
       <span className="text-sm font-medium">{value}</span>
     </div>
   );
-}
-
-function fmtMoney(value) {
-  if (value == null) return "—";
-  return `$${Number(value).toFixed(2)}`;
 }
 
 function formatPayment(pm) {

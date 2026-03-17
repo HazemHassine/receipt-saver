@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useAuthFetch } from "@/hooks/use-auth-fetch";
+import { useCurrency } from "@/components/currency-provider";
 import {
   Table,
   TableBody,
@@ -36,6 +37,7 @@ import { ExportDialog } from "@/components/export-dialog";
 
 export default function ReportsPage() {
   const authFetch = useAuthFetch();
+  const { formatAmount } = useCurrency();
   const [reports, setReports] = useState([]);
   const [loading, setLoading] = useState(true);
   const [deletingId, setDeletingId] = useState(null);
@@ -57,6 +59,10 @@ export default function ReportsPage() {
   useEffect(() => {
     loadReports();
   }, [authFetch]);
+
+  function handleReportCreated(report) {
+    setReports((prev) => [report, ...prev]);
+  }
 
   async function handleDelete(id) {
     setDeletingId(id);
@@ -88,7 +94,7 @@ export default function ReportsPage() {
             {reports.length} saved report{reports.length !== 1 ? "s" : ""}
           </p>
         </div>
-        <ExportDialog />
+        <ExportDialog onReportCreated={handleReportCreated} />
       </div>
 
       {reports.length === 0 ? (
@@ -100,6 +106,7 @@ export default function ReportsPage() {
           </p>
           <ExportDialog
             trigger={<Button>Create Report</Button>}
+            onReportCreated={handleReportCreated}
           />
         </div>
       ) : (
@@ -135,7 +142,7 @@ export default function ReportsPage() {
                     </Badge>
                   </TableCell>
                   <TableCell className="text-right font-semibold">
-                    ${(report.totalAmount || 0).toFixed(2)}
+                    {formatAmount(report.totalAmount || 0)}
                   </TableCell>
                   <TableCell>
                     <div className="flex flex-wrap gap-1">

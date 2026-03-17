@@ -30,7 +30,7 @@ const CATEGORIES = [
   "utilities", "health", "shopping", "travel", "other",
 ];
 
-export function ExportDialog({ trigger }) {
+export function ExportDialog({ trigger, onReportCreated }) {
   const [open, setOpen] = useState(false);
   const [exportFormat, setExportFormat] = useState("pdf");
   const [reportName, setReportName] = useState("");
@@ -104,6 +104,9 @@ export function ExportDialog({ trigger }) {
         }
 
         toast.success("PDF report saved to Reports");
+        if (data.report && onReportCreated) {
+          onReportCreated(data.report);
+        }
       }
 
       setOpen(false);

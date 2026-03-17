@@ -2,18 +2,18 @@
 
 import { useEffect, useState, useMemo } from "react";
 import { useAuthFetch } from "@/hooks/use-auth-fetch";
+import { useCurrency } from "@/components/currency-provider";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Receipt,
   DollarSign,
@@ -23,17 +23,12 @@ import {
   Store,
   X,
   Download,
+  ChevronDown,
 } from "lucide-react";
 import {
   format,
   parseISO,
-  startOfMonth,
-  endOfMonth,
   subMonths,
-  isAfter,
-  isBefore,
-  startOfDay,
-  endOfDay,
 } from "date-fns";
 import Link from "next/link";
 import { CategoryChart } from "@/components/category-chart";
@@ -49,14 +44,27 @@ const PAYMENT_METHODS = ["cash", "credit", "debit", "visa", "mastercard", "amex"
 
 export default function DashboardPage() {
   const authFetch = useAuthFetch();
+  const { formatAmount } = useCurrency();
   const [receipts, setReceipts] = useState([]);
   const [loading, setLoading] = useState(true);
 
   // Filters
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
-  const [categoryFilter, setCategoryFilter] = useState("all");
-  const [paymentFilter, setPaymentFilter] = useState("all");
+  const [categoryFilter, setCategoryFilter] = useState([]); // [] = all
+  const [paymentFilter, setPaymentFilter] = useState([]);   // [] = all
+
+  function toggleCategory(cat) {
+    setCategoryFilter((prev) =>
+      prev.includes(cat) ? prev.filter((c) => c !== cat) : [...prev, cat]
+    );
+  }
+
+  function togglePayment(pm) {
+    setPaymentFilter((prev) =>
+      prev.includes(pm) ? prev.filter((p) => p !== pm) : [...prev, pm]
+    );
+  }
 
   useEffect(() => {
     async function load() {
@@ -75,40 +83,40 @@ export default function DashboardPage() {
     load();
   }, [authFetch]);
 
-  const hasFilters = dateFrom || dateTo || categoryFilter !== "all" || paymentFilter !== "all";
+  const hasFilters = dateFrom || dateTo || categoryFilter.length > 0 || paymentFilter.length > 0;
 
   function clearFilters() {
     setDateFrom("");
     setDateTo("");
-    setCategoryFilter("all");
-    setPaymentFilter("all");
+    setCategoryFilter([]);
+    setPaymentFilter([]);
   }
 
   const { filtered, allCompleted } = useMemo(() => {
     const allCompleted = receipts.filter((r) => r.status === "completed");
     let result = [...allCompleted];
 
+    // r.date is stored as "YYYY-MM-DD" — plain string comparison is
+    // timezone-safe and correct for date-only values.
     if (dateFrom) {
-      const from = startOfDay(parseISO(dateFrom));
-      result = result.filter((r) => r.date && !isBefore(parseISO(r.date), from));
+      result = result.filter((r) => r.date && r.date >= dateFrom);
     }
     if (dateTo) {
-      const to = endOfDay(parseISO(dateTo));
-      result = result.filter((r) => r.date && !isAfter(parseISO(r.date), to));
+      result = result.filter((r) => r.date && r.date <= dateTo);
     }
-    if (categoryFilter !== "all") {
-      result = result.filter((r) => (r.category || "other") === categoryFilter);
+    if (categoryFilter.length > 0) {
+      result = result.filter((r) => categoryFilter.includes(r.category || "other"));
     }
-    if (paymentFilter !== "all") {
+    if (paymentFilter.length > 0) {
       result = result.filter((r) => {
         const brand = (r.paymentMethod?.cardBrand || "").toLowerCase();
         const method = (r.paymentMethod?.type || "").toLowerCase();
-        return brand.includes(paymentFilter) || method.includes(paymentFilter);
+        return paymentFilter.some((p) => brand.includes(p) || method.includes(p));
       });
     }
 
     return { filtered: result, allCompleted };
-  }, [receipts, dateFrom, dateTo, categoryFilter, paymentFilter]);
+  }, [receipts, dateFrom, dateTo, JSON.stringify(categoryFilter), JSON.stringify(paymentFilter)]);
 
   const stats = useMemo(() => {
     // Current period totals
@@ -116,18 +124,17 @@ export default function DashboardPage() {
     const receiptCount = filtered.length;
 
     // This month vs last month (uses unfiltered data)
+    // Use YYYY-MM-DD string prefixes — safe for date-only fields across all timezones.
     const now = new Date();
-    const thisMonthStart = startOfMonth(now);
-    const thisMonthEnd = endOfMonth(now);
-    const lastMonthStart = startOfMonth(subMonths(now, 1));
-    const lastMonthEnd = endOfMonth(subMonths(now, 1));
+    const thisMonthPrefix = format(now, "yyyy-MM");
+    const lastMonthPrefix = format(subMonths(now, 1), "yyyy-MM");
 
     const thisMonthTotal = allCompleted
-      .filter((r) => r.date && !isBefore(parseISO(r.date), thisMonthStart) && !isAfter(parseISO(r.date), thisMonthEnd))
+      .filter((r) => r.date?.startsWith(thisMonthPrefix))
       .reduce((sum, r) => sum + (r.total || 0), 0);
 
     const lastMonthTotal = allCompleted
-      .filter((r) => r.date && !isBefore(parseISO(r.date), lastMonthStart) && !isAfter(parseISO(r.date), lastMonthEnd))
+      .filter((r) => r.date?.startsWith(lastMonthPrefix))
       .reduce((sum, r) => sum + (r.total || 0), 0);
 
     const monthDelta = lastMonthTotal > 0
@@ -211,28 +218,76 @@ export default function DashboardPage() {
           <span className="text-sm text-muted-foreground whitespace-nowrap">To</span>
           <Input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className="w-[150px] h-8 text-sm" />
         </div>
-        <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-          <SelectTrigger className="w-[150px] h-8 text-sm">
-            <SelectValue placeholder="Category" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All categories</SelectItem>
-            {CATEGORIES.map((c) => (
-              <SelectItem key={c} value={c} className="capitalize">{c.charAt(0).toUpperCase() + c.slice(1)}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <Select value={paymentFilter} onValueChange={setPaymentFilter}>
-          <SelectTrigger className="w-[150px] h-8 text-sm">
-            <SelectValue placeholder="Payment" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All payments</SelectItem>
-            {PAYMENT_METHODS.map((p) => (
-              <SelectItem key={p} value={p} className="capitalize">{p.charAt(0).toUpperCase() + p.slice(1)}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        {/* Category multi-select */}
+        <Popover>
+          <PopoverTrigger className="inline-flex items-center justify-between rounded-md border border-input bg-background px-3 h-8 text-sm w-[155px] hover:bg-accent transition-colors gap-2">
+            <span className="truncate text-left">
+              {categoryFilter.length === 0
+                ? "All categories"
+                : categoryFilter.length === 1
+                ? categoryFilter[0].charAt(0).toUpperCase() + categoryFilter[0].slice(1)
+                : `${categoryFilter.length} categories`}
+            </span>
+            <ChevronDown className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+          </PopoverTrigger>
+          <PopoverContent className="w-[190px] p-2" align="start">
+            <div className="space-y-1">
+              <button
+                className="w-full text-left text-xs text-muted-foreground hover:text-foreground px-2 py-1 transition-colors"
+                onClick={() => setCategoryFilter([])}
+              >
+                {categoryFilter.length > 0 ? "Clear selection" : "All categories"}
+              </button>
+              {CATEGORIES.map((cat) => (
+                <label
+                  key={cat}
+                  className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-muted cursor-pointer text-sm capitalize"
+                >
+                  <Checkbox
+                    checked={categoryFilter.includes(cat)}
+                    onCheckedChange={() => toggleCategory(cat)}
+                  />
+                  {cat}
+                </label>
+              ))}
+            </div>
+          </PopoverContent>
+        </Popover>
+        {/* Payment multi-select */}
+        <Popover>
+          <PopoverTrigger className="inline-flex items-center justify-between rounded-md border border-input bg-background px-3 h-8 text-sm w-[145px] hover:bg-accent transition-colors gap-2">
+            <span className="truncate text-left">
+              {paymentFilter.length === 0
+                ? "All payments"
+                : paymentFilter.length === 1
+                ? paymentFilter[0].charAt(0).toUpperCase() + paymentFilter[0].slice(1)
+                : `${paymentFilter.length} methods`}
+            </span>
+            <ChevronDown className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+          </PopoverTrigger>
+          <PopoverContent className="w-[170px] p-2" align="start">
+            <div className="space-y-1">
+              <button
+                className="w-full text-left text-xs text-muted-foreground hover:text-foreground px-2 py-1 transition-colors"
+                onClick={() => setPaymentFilter([])}
+              >
+                {paymentFilter.length > 0 ? "Clear selection" : "All payments"}
+              </button>
+              {PAYMENT_METHODS.map((pm) => (
+                <label
+                  key={pm}
+                  className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-muted cursor-pointer text-sm capitalize"
+                >
+                  <Checkbox
+                    checked={paymentFilter.includes(pm)}
+                    onCheckedChange={() => togglePayment(pm)}
+                  />
+                  {pm}
+                </label>
+              ))}
+            </div>
+          </PopoverContent>
+        </Popover>
         {hasFilters && (
           <Button variant="ghost" size="sm" className="h-8 gap-1.5 text-muted-foreground" onClick={clearFilters}>
             <X className="h-3.5 w-3.5" /> Clear
@@ -247,19 +302,19 @@ export default function DashboardPage() {
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard
           title="Total Spend"
-          value={`$${stats.totalSpend.toFixed(2)}`}
+          value={formatAmount(stats.totalSpend)}
           sub={hasFilters ? "filtered period" : "all time"}
           icon={<DollarSign className="h-4 w-4 text-muted-foreground" />}
         />
         <StatCard
           title="Receipts"
           value={stats.receiptCount}
-          sub={`avg $${stats.avgPerReceipt.toFixed(2)} each`}
+          sub={`avg ${formatAmount(stats.avgPerReceipt)} each`}
           icon={<Receipt className="h-4 w-4 text-muted-foreground" />}
         />
         <StatCard
           title="This Month"
-          value={`$${stats.thisMonthTotal.toFixed(2)}`}
+          value={formatAmount(stats.thisMonthTotal)}
           sub={
             stats.monthDelta !== null ? (
               <span className={`flex items-center gap-1 ${stats.monthDelta > 0 ? "text-red-500" : "text-green-600"}`}>
@@ -268,14 +323,14 @@ export default function DashboardPage() {
                   : <TrendingDown className="h-3.5 w-3.5" />}
                 {Math.abs(stats.monthDelta).toFixed(1)}% vs last month
               </span>
-            ) : `$${stats.lastMonthTotal.toFixed(2)} last month`
+            ) : `${formatAmount(stats.lastMonthTotal)} last month`
           }
           icon={<Calendar className="h-4 w-4 text-muted-foreground" />}
         />
         <StatCard
           title="Top Category"
           value={<span className="capitalize">{stats.categoryData[0]?.name || "—"}</span>}
-          sub={stats.categoryData[0] ? `$${stats.categoryData[0].value.toFixed(2)}` : "no data yet"}
+          sub={stats.categoryData[0] ? formatAmount(stats.categoryData[0].value) : "no data yet"}
           icon={<TrendingUp className="h-4 w-4 text-muted-foreground" />}
         />
       </div>
@@ -329,7 +384,7 @@ export default function DashboardPage() {
                           <span className="font-medium truncate">{m.name}</span>
                           <span className="text-xs text-muted-foreground shrink-0">{m.count}×</span>
                         </div>
-                        <span className="font-semibold shrink-0 ml-2">${m.total.toFixed(2)}</span>
+                        <span className="font-semibold shrink-0 ml-2">{formatAmount(m.total)}</span>
                       </div>
                       <div className="h-1.5 bg-muted rounded-full overflow-hidden">
                         <div
@@ -373,7 +428,7 @@ export default function DashboardPage() {
                       <Badge variant="secondary" className="capitalize text-xs hidden sm:inline-flex">
                         {receipt.category || "other"}
                       </Badge>
-                      <span className="text-sm font-semibold">${(receipt.total || 0).toFixed(2)}</span>
+                      <span className="text-sm font-semibold">{formatAmount(receipt.total || 0)}</span>
                     </div>
                   </Link>
                 ))}

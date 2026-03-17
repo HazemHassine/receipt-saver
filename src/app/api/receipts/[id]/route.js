@@ -75,9 +75,10 @@ export async function PATCH(request, { params }) {
       }
     }
 
-    // Normalize merchant name if being updated
+    // Normalize merchant name if being updated; resolve to best display string
     if (updates.merchant) {
-      updates.merchant = normalizeMerchant(updates.merchant);
+      const _r = normalizeMerchant(updates.merchant);
+      updates.merchant = _r.merchantCanonical ?? _r.merchantCleaned ?? _r.merchantRaw;
     }
 
     if (Object.keys(updates).length === 0) {

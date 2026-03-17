@@ -167,8 +167,14 @@ function validateAndClean(data) {
     "utilities", "health", "shopping", "travel", "other",
   ];
 
-  return {
-    merchant: normalizeMerchant(typeof data.merchant === "string" ? data.merchant : null),
+    // Normalize merchant: returns structured object with raw, cleaned, canonical, branch, matchType, confidence
+    const _merchantResult = normalizeMerchant(typeof data.merchant === "string" ? data.merchant : null);
+    return {
+      merchant: _merchantResult.merchantCanonical ?? _merchantResult.merchantCleaned ?? _merchantResult.merchantRaw,
+      merchantRaw: _merchantResult.merchantRaw,
+      merchantBranch: _merchantResult.merchantBranch,
+      merchantMatchType: _merchantResult.matchType,
+      merchantConfidence: _merchantResult.confidence,
     date: typeof data.date === "string" ? data.date : null,
     currency: typeof data.currency === "string" ? data.currency : "USD",
     subtotal: toNumber(data.subtotal),

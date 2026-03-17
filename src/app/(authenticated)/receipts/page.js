@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useMemo } from "react";
 import { useAuthFetch } from "@/hooks/use-auth-fetch";
+import { useCurrency } from "@/components/currency-provider";
 import {
   Table,
   TableBody,
@@ -41,6 +42,7 @@ const CATEGORIES = [
 
 export default function ReceiptsPage() {
   const authFetch = useAuthFetch();
+  const { formatAmount } = useCurrency();
   const [receipts, setReceipts] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -404,7 +406,7 @@ export default function ReceiptsPage() {
                     </Badge>
                   </TableCell>
                   <TableCell className="text-right font-semibold">
-                    ${(receipt.total || 0).toFixed(2)}
+                    {formatAmount(receipt.total || 0)}
                   </TableCell>
                   <TableCell>
                     <Badge

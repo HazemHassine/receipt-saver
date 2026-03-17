@@ -1,5 +1,6 @@
 import { verifyAuth, unauthorizedResponse } from "@/lib/auth";
 import { getOrCreateUser } from "@/lib/credits";
+import { db } from "@/lib/firebase-admin";
 
 export async function GET(request) {
   const user = await verifyAuth(request);
@@ -15,6 +16,7 @@ export async function GET(request) {
         photoURL: userData.photoURL,
         credits: userData.credits,
         unlimited: userData.credits === -1,
+        preferredCurrency: userData.preferredCurrency || "USD",
       },
     });
   } catch (error) {
@@ -23,5 +25,29 @@ export async function GET(request) {
       { error: "Failed to fetch user data" },
       { status: 500 }
     );
+  }
+}
+
+export async function PATCH(request) {
+  const user = await verifyAuth(request);
+  if (!user) return unauthorizedResponse();
+
+  try {
+    const body = await request.json();
+    const allowed = ["preferredCurrency"];
+    const updates = {};
+    for (const key of allowed) {
+      if (body[key] !== undefined) updates[key] = body[key];
+    }
+
+    if (Object.keys(updates).length === 0) {
+      return Response.json({ error: "No valid fields" }, { status: 400 });
+    }
+
+    await db.collection("users").doc(user.uid).update(updates);
+    return Response.json({ ok: true });
+  } catch (error) {
+    console.error("Error updating user:", error);
+    return Response.json({ error: "Failed to update" }, { status: 500 });
   }
 }
