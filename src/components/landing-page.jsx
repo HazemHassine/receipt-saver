@@ -465,7 +465,7 @@ export function LandingPage() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
             {[
               { value: 99, suffix: "%", label: "Extraction accuracy" },
-              { value: 3, suffix: "s", label: "Avg processing time" },
+              { value: 7, suffix: "s", label: "Avg processing time" },
               { value: 15, suffix: "+", label: "Supported categories" },
               { value: 4, suffix: "", label: "Languages supported" },
             ].map((stat, i) => (

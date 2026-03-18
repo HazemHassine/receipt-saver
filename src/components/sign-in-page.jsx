@@ -2,6 +2,7 @@
 
 import { useAuth } from "@/components/auth-provider";
 import { useTranslations } from "next-intl";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Receipt } from "lucide-react";
 
@@ -47,6 +48,12 @@ export function SignInPage() {
           </svg>
           Continue with Google
         </Button>
+
+        <p className="text-sm text-muted-foreground">
+          or go to the <Link href="/" className="underline">
+             Landing Page
+          </Link>
+        </p>
 
         <p className="text-xs text-muted-foreground">
           {t("securityNote")}

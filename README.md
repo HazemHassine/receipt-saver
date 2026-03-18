@@ -16,9 +16,7 @@ Snap a photo. Extract every detail. Stay on budget.
 [![Twilio](https://img.shields.io/badge/Twilio-WhatsApp-F22F46?logo=twilio&logoColor=white)](https://www.twilio.com/whatsapp)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind%20CSS-4-06B6D4?logo=tailwindcss&logoColor=white)](https://tailwindcss.com)
 [![License](https://img.shields.io/badge/License-Private-red)]()
-
-[Live Demo](https://receipt-saver-cucgfghe4q-ew.a.run.app) · [Report Bug](#) · [Request Feature](#)
-
+[Live Demo](https://receipt-saver-cucgfghe4q-ew.a.run.app) · [Report Bug](mailto:hazemhassine.edu@gmail.com?subject=Receipt%20Saver%20Bug%20Report) · [Request Feature](mailto:hazemhassine.edu@gmail.com?subject=Receipt%20Saver%20Feature%20Request)
 </div>
 
 ---
@@ -89,7 +87,7 @@ Snap a photo. Extract every detail. Stay on budget.
 
 ### 🔐 Security
 - **Google authentication** — Sign in with your Google account
-- **Beta gating** — Email allowlist for controlled access
+- **Access control** — Firebase Authentication
 - **Firestore security rules** — Users can only access their own data
 - **No data sharing** — Your financial data is never shared or used for training
 
@@ -204,10 +202,6 @@ GOOGLE_APPLICATION_CREDENTIALS=/path/to/service-account-key.json
 # Gemini AI
 GOOGLE_GEMINI_API_KEY=your_gemini_api_key
 
-# Access control (comma-separated emails)
-UNLIMITED_EMAILS=user1@gmail.com,user2@gmail.com
-NEXT_PUBLIC_ALLOWED_EMAILS=user1@gmail.com,user2@gmail.com
-
 # Twilio WhatsApp (optional)
 TWILIO_ACCOUNT_SID=your_sid
 TWILIO_AUTH_TOKEN=your_token
@@ -226,22 +220,7 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ## 🐳 Deployment (Google Cloud Run)
 
-The project includes a one-command deploy script:
-
-```bash
-# Authenticate with GCP
-gcloud auth login
-gcloud config set project your-project-id
-
-# Deploy
-./deploy.sh
-```
-
-This will:
-1. Build a Docker image via **Cloud Build** (multi-stage, ~150MB final image)
-2. Deploy to **Cloud Run** in `europe-west1`
-3. Set all runtime environment variables
-4. Print the live URL
+Deployment is handled via CI/CD: GitHub-triggered pipelines build a Docker image and deploy the service to Google Cloud Run (europe-west1). The pipeline builds the container, runs tests, and updates the Cloud Run service. See `cloudbuild.yaml` and the repository's GitHub Actions/workflows for full details.
 
 ### Post-deployment checklist
 

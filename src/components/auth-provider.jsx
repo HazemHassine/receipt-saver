@@ -8,14 +8,9 @@ import {
 } from "firebase/auth";
 import { auth as getAuth, googleProvider as getGoogleProvider } from "@/lib/firebase";
 
-const ALLOWED_EMAILS = (process.env.NEXT_PUBLIC_ALLOWED_EMAILS || "")
-  .split(/[,;]/)
-  .map((e) => e.trim().toLowerCase())
-  .filter(Boolean);
-
-function isEmailAllowed(email) {
-  if (ALLOWED_EMAILS.length === 0) return true; // no restriction if env not set
-  return ALLOWED_EMAILS.includes(email?.toLowerCase());
+// Allow all authenticated emails by default. Removed allowlist enforcement.
+function isEmailAllowed() {
+  return true;
 }
 
 const AuthContext = createContext({

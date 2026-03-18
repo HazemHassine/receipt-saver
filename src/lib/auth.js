@@ -1,9 +1,6 @@
 import { adminAuth } from "@/lib/firebase-admin";
 
-const ALLOWED_EMAILS = (process.env.UNLIMITED_EMAILS || "")
-  .split(/[,;]/)
-  .map((e) => e.trim().toLowerCase())
-  .filter(Boolean);
+// Removed server-side allowlist enforcement; accept any authenticated email.
 
 /**
  * Verify the Firebase ID token from the Authorization header.
@@ -22,13 +19,7 @@ export async function verifyAuth(request) {
   try {
     const decoded = await adminAuth.verifyIdToken(token);
 
-    // Beta gate: reject emails not in the allowlist
-    if (
-      ALLOWED_EMAILS.length > 0 &&
-      !ALLOWED_EMAILS.includes(decoded.email?.toLowerCase())
-    ) {
-      return null;
-    }
+    // No allowlist enforced — any valid token is accepted.
 
     return decoded;
   } catch {
