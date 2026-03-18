@@ -6,7 +6,6 @@ substitutions:
   _SERVICE_NAME: receipt-saver
   _REPOSITORY: receipt-saver
 
-  # public build-time vars only
   _NEXT_PUBLIC_FIREBASE_API_KEY: ""
   _NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: ""
   _NEXT_PUBLIC_FIREBASE_PROJECT_ID: ""
@@ -15,6 +14,7 @@ substitutions:
   _NEXT_PUBLIC_FIREBASE_APP_ID: ""
   _NEXT_PUBLIC_ALLOWED_EMAILS: ""
   _NEXT_PUBLIC_MEASUREMENT_ID: ""
+  _UNLIMITED_EMAILS: ""
 
 steps:
   - name: gcr.io/cloud-builders/docker
@@ -62,7 +62,7 @@ steps:
       - --min-instances=0
       - --max-instances=3
       - --timeout=60
-      - --update-env-vars=^##^GOOGLE_CLOUD_PROJECT_ID=$PROJECT_ID,GOOGLE_CLOUD_STORAGE_BUCKET=receipt-saver-uploads,NODE_ENV=production,UNLIMITED_EMAILS=hazemhassine.edu@gmail.com,yasminemarzouk73@gmail.com,zied.miled01@gmail.com,oussamasghair2@gmail.com
+      - --update-env-vars=^##^GOOGLE_CLOUD_PROJECT_ID=$PROJECT_ID##GOOGLE_CLOUD_STORAGE_BUCKET=receipt-saver-uploads##NODE_ENV=production##UNLIMITED_EMAILS=${_UNLIMITED_EMAILS}
       - --update-secrets=GOOGLE_GEMINI_API_KEY=GOOGLE_GEMINI_API_KEY:latest,TWILIO_ACCOUNT_SID=TWILIO_ACCOUNT_SID:latest,TWILIO_AUTH_TOKEN=TWILIO_AUTH_TOKEN:latest,TWILIO_WHATSAPP_NUMBER=TWILIO_WHATSAPP_NUMBER:latest
 
 images:
