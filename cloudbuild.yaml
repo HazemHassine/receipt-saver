@@ -62,6 +62,7 @@ steps:
       - --min-instances=0
       - --max-instances=3
       - --timeout=60
+      - --remove-env-vars=GOOGLE_GEMINI_API_KEY
       - --update-env-vars=^##^GOOGLE_CLOUD_PROJECT_ID=$PROJECT_ID##GOOGLE_CLOUD_STORAGE_BUCKET=receipt-saver-uploads##NODE_ENV=production##UNLIMITED_EMAILS=${_UNLIMITED_EMAILS}
       - --update-secrets=GOOGLE_GEMINI_API_KEY=GOOGLE_GEMINI_API_KEY:latest,TWILIO_ACCOUNT_SID=TWILIO_ACCOUNT_SID:latest,TWILIO_AUTH_TOKEN=TWILIO_AUTH_TOKEN:latest,TWILIO_WHATSAPP_NUMBER=TWILIO_WHATSAPP_NUMBER:latest
 
