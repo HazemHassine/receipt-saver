@@ -1,31 +1,69 @@
-steps:
-  - name: 'gcr.io/cloud-builders/docker'
-    args:
-      - 'build'
-      - '--build-arg'
-      - 'NEXT_PUBLIC_FIREBASE_API_KEY=${_NEXT_PUBLIC_FIREBASE_API_KEY}'
-      - '--build-arg'
-      - 'NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=${_NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN}'
-      - '--build-arg'
-      - 'NEXT_PUBLIC_FIREBASE_PROJECT_ID=${_NEXT_PUBLIC_FIREBASE_PROJECT_ID}'
-      - '--build-arg'
-      - 'NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=${_NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET}'
-      - '--build-arg'
-      - 'NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=${_NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID}'
-      - '--build-arg'
-      - 'NEXT_PUBLIC_FIREBASE_APP_ID=${_NEXT_PUBLIC_FIREBASE_APP_ID}'
-      - '--build-arg'
-      - 'NEXT_MEASUREMENT_ID=${_NEXT_MEASUREMENT_ID}'
-      - '--build-arg'
-      - 'NEXT_PUBLIC_ALLOWED_EMAILS=${_NEXT_PUBLIC_ALLOWED_EMAILS}'
-      - '-t'
-      - 'gcr.io/$PROJECT_ID/receipt-saver'
-      - '.'
-
-images:
-  - 'gcr.io/$PROJECT_ID/receipt-saver'
-
 options:
   logging: CLOUD_LOGGING_ONLY
 
-timeout: '600s'
+substitutions:
+  _REGION: europe-west1
+  _SERVICE_NAME: receipt-saver
+  _REPOSITORY: receipt-saver
+
+  # public build-time vars only
+  _NEXT_PUBLIC_FIREBASE_API_KEY: ""
+  _NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: ""
+  _NEXT_PUBLIC_FIREBASE_PROJECT_ID: ""
+  _NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET: ""
+  _NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: ""
+  _NEXT_PUBLIC_FIREBASE_APP_ID: ""
+  _NEXT_PUBLIC_ALLOWED_EMAILS: ""
+  _NEXT_PUBLIC_MEASUREMENT_ID: ""
+
+steps:
+  - name: gcr.io/cloud-builders/docker
+    args:
+      - build
+      - -t
+      - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/${_SERVICE_NAME}:$COMMIT_SHA
+      - --build-arg
+      - NEXT_PUBLIC_FIREBASE_API_KEY=${_NEXT_PUBLIC_FIREBASE_API_KEY}
+      - --build-arg
+      - NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=${_NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN}
+      - --build-arg
+      - NEXT_PUBLIC_FIREBASE_PROJECT_ID=${_NEXT_PUBLIC_FIREBASE_PROJECT_ID}
+      - --build-arg
+      - NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=${_NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET}
+      - --build-arg
+      - NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=${_NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID}
+      - --build-arg
+      - NEXT_PUBLIC_FIREBASE_APP_ID=${_NEXT_PUBLIC_FIREBASE_APP_ID}
+      - --build-arg
+      - NEXT_PUBLIC_ALLOWED_EMAILS=${_NEXT_PUBLIC_ALLOWED_EMAILS}
+      - --build-arg
+      - NEXT_PUBLIC_MEASUREMENT_ID=${_NEXT_PUBLIC_MEASUREMENT_ID}
+      - .
+
+  - name: gcr.io/cloud-builders/docker
+    args:
+      - push
+      - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/${_SERVICE_NAME}:$COMMIT_SHA
+
+  - name: gcr.io/google.com/cloudsdktool/cloud-sdk
+    entrypoint: gcloud
+    args:
+      - run
+      - deploy
+      - ${_SERVICE_NAME}
+      - --image=${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/${_SERVICE_NAME}:$COMMIT_SHA
+      - --region=${_REGION}
+      - --platform=managed
+      - --allow-unauthenticated
+      - --service-account=receipt-saver-dev@$PROJECT_ID.iam.gserviceaccount.com
+      - --port=8080
+      - --memory=1Gi
+      - --cpu=1
+      - --min-instances=0
+      - --max-instances=3
+      - --timeout=60
+      - --update-env-vars=GOOGLE_CLOUD_PROJECT_ID=$PROJECT_ID,GOOGLE_CLOUD_STORAGE_BUCKET=receipt-saver-uploads,NODE_ENV=production,UNLIMITED_EMAILS=hazemhassine.edu@gmail.com,yasminemarzouk73@gmail.com,zied.miled01@gmail.com,oussamasghair2@gmail.com
+      - --update-secrets=GOOGLE_GEMINI_API_KEY=GOOGLE_GEMINI_API_KEY:latest,TWILIO_ACCOUNT_SID=TWILIO_ACCOUNT_SID:latest,TWILIO_AUTH_TOKEN=TWILIO_AUTH_TOKEN:latest,TWILIO_WHATSAPP_NUMBER=TWILIO_WHATSAPP_NUMBER:latest
+
+images:
+  - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/${_SERVICE_NAME}:$COMMIT_SHA
