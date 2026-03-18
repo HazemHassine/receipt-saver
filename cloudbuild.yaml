@@ -62,7 +62,7 @@ steps:
       - --min-instances=0
       - --max-instances=3
       - --timeout=60
-      - --update-env-vars=GOOGLE_CLOUD_PROJECT_ID=$PROJECT_ID,GOOGLE_CLOUD_STORAGE_BUCKET=receipt-saver-uploads,NODE_ENV=production,UNLIMITED_EMAILS=hazemhassine.edu@gmail.com,yasminemarzouk73@gmail.com,zied.miled01@gmail.com,oussamasghair2@gmail.com
+      - --update-env-vars=^##^GOOGLE_CLOUD_PROJECT_ID=$PROJECT_ID,GOOGLE_CLOUD_STORAGE_BUCKET=receipt-saver-uploads,NODE_ENV=production,UNLIMITED_EMAILS=hazemhassine.edu@gmail.com,yasminemarzouk73@gmail.com,zied.miled01@gmail.com,oussamasghair2@gmail.com
       - --update-secrets=GOOGLE_GEMINI_API_KEY=GOOGLE_GEMINI_API_KEY:latest,TWILIO_ACCOUNT_SID=TWILIO_ACCOUNT_SID:latest,TWILIO_AUTH_TOKEN=TWILIO_AUTH_TOKEN:latest,TWILIO_WHATSAPP_NUMBER=TWILIO_WHATSAPP_NUMBER:latest
 
 images:
